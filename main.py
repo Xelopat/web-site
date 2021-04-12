@@ -1,5 +1,7 @@
 from flask import Flask, render_template
 from werkzeug.utils import redirect
+
+from data.users import User
 from forms.user import RegisterForm
 
 from data import db_session
