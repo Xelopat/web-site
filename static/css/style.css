@@ -1,0 +1,18 @@
+.form{
+ border: 4px double black;
+ width: 300px;
+ border-radius: 20px;
+ border-color: #ffa500;
+}
+.wrapper{
+  height: 100%;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+}
+
+.item{
+  display: inline-block;
+  height: 30%;
+  width: 30%;
+}

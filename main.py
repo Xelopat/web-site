@@ -1,22 +1,43 @@
 from flask import Flask, render_template
-from werkzeug.security import check_password_hash
+from flask_login import LoginManager, login_required, login_user, current_user, logout_user
 from werkzeug.utils import redirect
 
-from data.users import User
+from data.create_database import User
 from forms.user import RegisterForm, LoginForm
 
 from data import db_session
 
-from data import db_session
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    db_sess = db_session.create_session()
+    return db_sess.query(User).get(user_id)
+
+
+@login_manager.user_loader
+def get_id(user_id):
+    db_sess = db_session.create_session()
+    return db_sess.query(User).get(user_id)
 
 
 # main window
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/admin/')
+@login_required
+def admin():
+    print(current_user.name)
+    return render_template('admin.html')
 
 
 @app.route('/login/', methods=['GET', 'POST'])
@@ -26,24 +47,33 @@ def login():
         username = form.name.data
         password = form.password.data
         db_sess = db_session.create_session()
-        table = db_sess.query(User).filter(User.email == username).first()
+        user = db_sess.query(User).filter(User.email == username).first()
         is_password = False
-        if table:
-            is_password = check_password_hash(table.hashed_password, password)
+        if user:
+            is_password = user.check_password(password)
         elif db_sess.query(User).filter(User.name == username).first():
-            table = db_sess.query(User).filter(User.name == username).first()
-            is_password = check_password_hash(table.hashed_password, password)
+            user = db_sess.query(User).filter(User.name == username).first()
+            is_password = user.check_password(password)
+
         else:
             return render_template('login.html', title='Вход',
                                    form=form,
                                    message="Такого пользователя не существует")
         if is_password:
+            login_user(user, remember=form.remember.data)
             return redirect('/')
         else:
             return render_template('login.html', title='Вход',
                                    form=form,
                                    message="Неверный пароль")
     return render_template('login.html', title='Вход', form=form)
+
+
+@app.route('/logout/')
+@login_required
+def logout():
+    logout_user()
+    return redirect('/login')
 
 
 # registration window
@@ -57,19 +87,25 @@ def register():
                                    message="Пароли не совпадают")
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.email == form.email.data).first():
-            return render_template('register.html', title='Регистрация',
-                                   form=form,
+            return render_template('register.html', title='Регистрация', form=form,
                                    message="Такой пользователь уже есть")
-        user = User(
-            name=form.name.data,
-            email=form.email.data,
-            about=form.about.data
-        )
+        user = User()
+        user.set_name(form.name.data)
+        user.set_about(form.about.data)
+        user.set_email(form.email.data)
         user.set_password(form.password.data)
+
         db_sess.add(user)
         db_sess.commit()
         return redirect('/login')
     return render_template('register.html', title='Регистрация', form=form)
+
+
+@app.route('/view_spending', methods=['GET', 'POST'])
+@login_required
+def view_spending():
+    print(current_user.id)
+    return render_template('spending.html', title='Мои траты')
 
 
 db_session.global_init("db/blogs.db")
