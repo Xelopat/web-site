@@ -35,17 +35,13 @@ class User(SqlAlchemyBase, UserMixin):
         self.email = email
 
 
-class My_spending(SqlAlchemyBase):
+class MySpending(SqlAlchemyBase):
     __tablename__ = 'spending'
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
-    id_user = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    eat = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    traveling = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    fun = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    clothes = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    health = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    another = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    month = sqlalchemy.Column(sqlalchemy.String,
-                              default="-".join(str(datetime.now().date()).split("-")[:2]))
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    cost = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    about = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    month = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    date = sqlalchemy.Column(sqlalchemy.String, nullable=False)

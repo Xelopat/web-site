@@ -1,19 +1,24 @@
-from datetime import datetime
+import os
+import matplotlib
+import matplotlib.pyplot as plt
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
+from sqlalchemy import create_engine, text, select
 from werkzeug.utils import redirect
 
-from data.create_database import User, My_spending
+from data.create_database import User, MySpending
 from forms.user import RegisterForm, LoginForm
 
 from data import db_session
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.init_app(app)
+matplotlib.use('Agg')
 
 
 @login_manager.user_loader
@@ -103,35 +108,56 @@ def register():
 @app.route('/view_spending', methods=['GET', 'POST'])
 @login_required
 def view_spending():
-    temp = {'temp': "hhh"}
-    if request.method == 'POST':
-        eat = request.form["eat"]
-        traveling = request.form["traveling"]
-        fun = request.form["fun"]
-        clothes = request.form["clothes"]
-        health = request.form["health"]
-        another = request.form["another"]
-        session = db_session.create_session()
-        if (session.query(My_spending).filter(My_spending.id == current_user.id,
-                                              My_spending.month == "-".join(str(datetime.now().date()).split("-")[
-                                                                            :2])).first()):
+    return render_template('spending.html', title='Мои траты')
 
-            session.query(My_spending).filter(My_spending.id == current_user.id,
-                                              My_spending.month == "-".join(str(datetime.now().date()).
-                                                                            split("-")[:2])). \
-                update(
-                {My_spending.eat: eat + My_spending.eat, My_spending.traveling: traveling + My_spending.traveling,
-                 My_spending.fun: fun + My_spending.fun,
-                 My_spending.clothes: clothes + My_spending.clothes, My_spending.health: health + My_spending.health,
-                 My_spending.another: another + My_spending.another},
-                synchronize_session=False)
+
+@app.route('/my_spending', methods=['GET', 'POST'])
+@login_required
+def my_spending():
+    date = request.args.to_dict()["date"]
+    user_id = str(current_user.id)
+    if not os.path.isdir(f"static/user_diagram/{user_id}"):
+        os.mkdir(f"static/user_diagram/{user_id}")
+    engine = create_engine('sqlite:///db/blogs.db', echo=False)
+    conn = engine.connect()
+    t = select([MySpending.about, MySpending.cost]).where(MySpending.user_id == int(user_id), MySpending.month == date)
+    res = conn.execute(t).fetchall()
+    label = []
+    cost = []
+    for row in res:
+        label.append(row[0])
+        cost.append(row[1])
+    if not cost:
+        cost = [1]
+        label = [""]
+    plt.close()
+    plt.pie(cost, labels=label, autopct='%.0f%%')
+    plt.savefig(f'static/user_diagram/{user_id}/{date}.png')
+    link = f'static/user_diagram/{user_id}/{date}.png'
+    return jsonify({"img": link})
+
+
+@app.route('/update_spending', methods=['GET', 'POST'])
+@login_required
+def update_spending():
+    if request.method == 'POST':
+        about = request.form["about"]
+        cost = request.form["cost"]
+        date = request.form["date"]
+        month = "-".join(date.split("-")[:2])
+        user_id = current_user.id
+        session = db_session.create_session()
+        info = session.query(MySpending).filter(MySpending.user_id == user_id,
+                                                MySpending.month == month,
+                                                MySpending.about == about)
+        if info.first():
+            info.update({MySpending.cost: MySpending.cost + int(cost)}, synchronize_session=False)
         else:
-            spending = My_spending(eat=eat, traveling=traveling, fun=fun, clothes=clothes, health=health,
-                                   another=another, id_user=current_user.id)
+            spending = MySpending(about=about, cost=cost, month=month, user_id=user_id,
+                                  date=date)
             session.add(spending)
         session.commit()
-        return redirect('/view_spending')
-    return render_template('spending.html', title='Мои траты', temp=temp)
+        return "complete"
 
 
 db_session.global_init("db/blogs.db")

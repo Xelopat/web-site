@@ -1,41 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate"/>
+    <meta http-equiv="pragma" content="no-cache"/>
+    <meta http-equiv="expires" content="0"/>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, max-age=0, must-revalidate"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"/>
 </head>
-<body>
-<form action="" method="post">
-<div class="wrapper">
-    <div class="item" id="first">
-        <label>&darr; Питание &darr;</label><br>
-        <input name="eat" autocomplete="False"><br><br>
-        <label>&darr; Проезд &darr;</label><br>
-        <input name="traveling" autocomplete="False">
-    </div>
-    <div class="item">
-        <label>&darr; Развлечения &darr;</label><br>
-        <input name="fun" autocomplete="False" align="middle"><br><br>
-        <label>&darr; Одежда &darr;</label><br>
-        <input name="clothes" autocomplete="False">
-    </div>
-    <div class="item">
-        <label>&darr; Здоровье &darr;</label><br>
-        <input name="health" autocomplete="False"><br><br>
-        <label>&darr; Прочее &darr;</label><br>
-        <input name="another" autocomplete="False">
-    </div>
-</div>
-<button type="submit" class="position_center borders" align="center">Принять</button>
-</form>
+<body align="center">
+<input id="about" autocomplete="False" placeholder="Название траты" onclick="start(this)"><br><br>
+<input id="cost" autocomplete="False" placeholder="Сумма" onclick="start(this)"><br><br>
+<input id="append_date" type="date" name="append" autocomplete="False"><br><br>
+<button onclick="update_db()" class="position_center borders">Добавить</button>
 <br>
+
 <p>Выберите месяц для анализа:</p>
-<input type="month" name="month" oninput="reload()">
-<p id="info"></p>
+<input type="month" name="month" oninput="get_image()" id="analise_date">
+<img id="diagram" src="">
 <script>
-    function reload(){
-        var date = document.getElementsByTagName("input")[0].value;
-        document.getElementById("info").innerHTML = date;
+    document.getElementById("analise_date").valueAsDate = new Date();
+    document.getElementById("append_date").valueAsDate = new Date();
+
+    async function get_image() {
+        var date = document.getElementById("analise_date").value;
+        let response = await fetch('http://localhost:8080/my_spending?date=' + date);
+        let body = await response.json();
+        let link = body["img"];
+        document.getElementById("diagram").src = link + "?" + new Date().getTime();
     }
+    async function update_db() {
+        let about = document.getElementById("about")
+        let cost = document.getElementById("cost")
+        let date = document.getElementById("append_date")
+        let formData = new FormData();
+        formData.append('about', about.value);
+        formData.append('cost', cost.value);
+        formData.append('date', date.value);
+        if(about.value != ""){
+            if(cost.value != ""){
+                let response = await fetch('http://localhost:8080/update_spending', {
+                    method: 'POST',
+                    body: formData
+                });
+                get_image();
+            }
+            else{
+                cost.style.borderColor = 'red';
+            }
+        }
+        else{
+            about.style.borderColor = 'red';
+            if(cost.value == "") cost.style.borderColor = 'red';
+        }
+    }
+    function start(Element) {
+	    Element.style.borderColor = 'black';
+    }
+    get_image();
+
 </script>
 </body>
 </html>
