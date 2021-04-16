@@ -7,43 +7,38 @@
 {% for category, message in get_flashed_messages(with_categories=true) %}
 <spam class="{{ category }}">{{ message }}</spam>
 {% endfor %}
-
-<form action="" method="post">
-    <div align="middle">
-        <form action="" method="post" class="form">
-            <h1>Вход</h1>
-            {{ form.hidden_tag() }}
-            <p>
-                {{ form.name.label }}<br>
-                {{ form.name(class="form-control") }}<br>
-                {% for error in form.name.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-            {% endfor %}
-            </p>
-            <p>
-                {{ form.password.label }}<br>
-                {{ form.password(class="form-control", type="password") }}<br>
-                {% for error in form.password.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-            {% endfor %}
-            </p>
-            <p>
-                {{ form.remember.label }}
-                {{ form.remember() }}<br>
-                {% for error in form.password.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-            {% endfor %}
-            </p>
-            <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
-            {{message}}
-        </form>
-    </div>
+<div align="middle">
+    <form action="" method="post" class="form">
+        <h1>Вход</h1>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.name.label }}<br>
+            {{ form.name(class="form-control") }}<br>
+            {% for error in form.name.errors %}
+        <p class="alert alert-danger" role="alert">
+        {{ error }}
+    </p>
+        {% endfor %}
+        <p>
+            {{ form.password.label }}<br>
+            {{ form.password(class="form-control", type="password") }}<br>
+            {% for error in form.password.errors %}
+        <p class="alert alert-danger" role="alert">
+        {{ error }}
+    </p>
+        {% endfor %}
+        <p>
+            {{ form.remember.label }}
+            {{ form.remember() }}<br>
+            {% for error in form.password.errors %}
+        <p class="alert alert-danger" role="alert">
+        {{ error }}
+        {% endfor %}
+    </p>
+        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        {{message}}
+    </form>
+</div>
 </body>
 </html>
 {% endblock %}

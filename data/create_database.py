@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import sqlalchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -17,7 +17,7 @@ class User(SqlAlchemyBase, UserMixin):
                               index=True, unique=True, nullable=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     created_date = sqlalchemy.Column(sqlalchemy.DateTime,
-                                     default=datetime.datetime.now)
+                                     default=datetime.now)
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
@@ -41,5 +41,11 @@ class My_spending(SqlAlchemyBase):
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
     id_user = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    created_date = sqlalchemy.Column(sqlalchemy.DateTime,
-                                     default=datetime.datetime.month)
+    eat = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    traveling = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    fun = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    clothes = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    health = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    another = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    month = sqlalchemy.Column(sqlalchemy.String,
+                              default="-".join(str(datetime.now().date()).split("-")[:2]))

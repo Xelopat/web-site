@@ -1,12 +1,13 @@
-from flask import Flask, render_template
+from datetime import datetime
+
+from flask import Flask, render_template, request
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
 from werkzeug.utils import redirect
 
-from data.create_database import User
+from data.create_database import User, My_spending
 from forms.user import RegisterForm, LoginForm
 
 from data import db_session
-
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -36,7 +37,6 @@ def index():
 @app.route('/admin/')
 @login_required
 def admin():
-    print(current_user.name)
     return render_template('admin.html')
 
 
@@ -48,7 +48,6 @@ def login():
         password = form.password.data
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.email == username).first()
-        is_password = False
         if user:
             is_password = user.check_password(password)
         elif db_sess.query(User).filter(User.name == username).first():
@@ -104,8 +103,35 @@ def register():
 @app.route('/view_spending', methods=['GET', 'POST'])
 @login_required
 def view_spending():
-    print(current_user.id)
-    return render_template('spending.html', title='Мои траты')
+    temp = {'temp': "hhh"}
+    if request.method == 'POST':
+        eat = request.form["eat"]
+        traveling = request.form["traveling"]
+        fun = request.form["fun"]
+        clothes = request.form["clothes"]
+        health = request.form["health"]
+        another = request.form["another"]
+        session = db_session.create_session()
+        if (session.query(My_spending).filter(My_spending.id == current_user.id,
+                                              My_spending.month == "-".join(str(datetime.now().date()).split("-")[
+                                                                            :2])).first()):
+
+            session.query(My_spending).filter(My_spending.id == current_user.id,
+                                              My_spending.month == "-".join(str(datetime.now().date()).
+                                                                            split("-")[:2])). \
+                update(
+                {My_spending.eat: eat + My_spending.eat, My_spending.traveling: traveling + My_spending.traveling,
+                 My_spending.fun: fun + My_spending.fun,
+                 My_spending.clothes: clothes + My_spending.clothes, My_spending.health: health + My_spending.health,
+                 My_spending.another: another + My_spending.another},
+                synchronize_session=False)
+        else:
+            spending = My_spending(eat=eat, traveling=traveling, fun=fun, clothes=clothes, health=health,
+                                   another=another, id_user=current_user.id)
+            session.add(spending)
+        session.commit()
+        return redirect('/view_spending')
+    return render_template('spending.html', title='Мои траты', temp=temp)
 
 
 db_session.global_init("db/blogs.db")
