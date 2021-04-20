@@ -8,7 +8,6 @@
 <form action="" method="post" class="form">
     <h1>Регистрация</h1>
     {{ form.hidden_tag() }}
-    <p>
         {{ form.email.label }}<br>
         {{ form.email(class="form-control", type="email") }}<br>
         {% for error in form.email.errors %}
@@ -16,8 +15,7 @@
                 {{ error }}
             </p>
         {% endfor %}
-    </p>
-    <p>
+        <br>
         {{ form.password.label }}<br>
         {{ form.password(class="form-control", type="password") }}<br>
         {% for error in form.password.errors %}
@@ -25,8 +23,7 @@
                 {{ error }}
             </p>
         {% endfor %}
-    </p>
-    <p>
+        <br>
         {{ form.password_again.label }}<br>
         {{ form.password_again(class="form-control", type="password") }}<br>
         {% for error in form.password_again.errors %}
@@ -34,8 +31,7 @@
                 {{ error }}
             </p>
         {% endfor %}
-    </p>
-    <p>
+        <br>
         {{ form.name.label }}<br>
         {{ form.name(class="form-control") }}<br>
         {% for error in form.name.errors %}
@@ -43,8 +39,7 @@
                 {{ error }}
             </p>
         {% endfor %}
-    </p>
-    <p>
+        <br>
         {{ form.about.label }}<br>
         {{ form.about(class="form-control") }}<br>
         {% for error in form.about.errors %}
@@ -52,7 +47,6 @@
                 {{ error }}
             </p>
         {% endfor %}
-    </p>
     <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
     {{message}}
 </form>

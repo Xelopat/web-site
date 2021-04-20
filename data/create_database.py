@@ -43,5 +43,6 @@ class MySpending(SqlAlchemyBase):
     user_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     cost = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     about = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    info = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     month = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     date = sqlalchemy.Column(sqlalchemy.String, nullable=False)

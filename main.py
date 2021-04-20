@@ -4,13 +4,15 @@ import matplotlib.pyplot as plt
 
 from flask import Flask, render_template, request, jsonify
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
-from sqlalchemy import create_engine, text, select
+from sqlalchemy import create_engine, select, func
 from werkzeug.utils import redirect
 
 from data.create_database import User, MySpending
 from forms.user import RegisterForm, LoginForm
 
 from data import db_session
+
+db_path = "db/blogs.db"
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -111,22 +113,28 @@ def view_spending():
     return render_template('spending.html', title='Мои траты')
 
 
-@app.route('/my_spending', methods=['GET', 'POST'])
+@app.route('/my_spending_month', methods=['GET', 'POST'])
 @login_required
-def my_spending():
+def my_spending_month():
     date = request.args.to_dict()["date"]
     user_id = str(current_user.id)
     if not os.path.isdir(f"static/user_diagram/{user_id}"):
         os.mkdir(f"static/user_diagram/{user_id}")
-    engine = create_engine('sqlite:///db/blogs.db', echo=False)
+    engine = create_engine(f'sqlite:///{db_path}', echo=False)
     conn = engine.connect()
-    t = select([MySpending.about, MySpending.cost]).where(MySpending.user_id == int(user_id), MySpending.month == date)
+    t = select([MySpending.about, func.sum(MySpending.cost)]).where(MySpending.user_id == int(user_id),
+                                                          MySpending.month == date).group_by(MySpending.about)
     res = conn.execute(t).fetchall()
     label = []
     cost = []
     for row in res:
         label.append(row[0])
         cost.append(row[1])
+
+    for i in range(len(cost) - 1, -1, -1):
+        if cost[i] == 0:
+            del cost[i]
+            del label[i]
     if not cost:
         cost = [1]
         label = [""]
@@ -137,6 +145,28 @@ def my_spending():
     return jsonify({"img": link})
 
 
+@app.route('/my_spending_day', methods=['GET', 'POST'])
+@login_required
+def my_spending_day():
+    date = request.args.to_dict()["date"]
+    user_id = str(current_user.id)
+    if not os.path.isdir(f"static/user_diagram/{user_id}"):
+        os.mkdir(f"static/user_diagram/{user_id}")
+    engine = create_engine(f'sqlite:///{db_path}', echo=False)
+    conn = engine.connect()
+    t = select([MySpending.id, MySpending.about, MySpending.info, MySpending.cost]).where(
+        MySpending.user_id == int(user_id),
+        MySpending.date == date)
+    res = conn.execute(t).fetchall()
+    spending_id, name, info, cost = [], [], [], []
+    for i in res:
+        spending_id.append(i[0])
+        name.append(i[1])
+        info.append(i[2])
+        cost.append(i[3])
+    return jsonify({"id": spending_id, "name": name, "info": info, "cost": cost})
+
+
 @app.route('/update_spending', methods=['GET', 'POST'])
 @login_required
 def update_spending():
@@ -144,21 +174,28 @@ def update_spending():
         about = request.form["about"]
         cost = request.form["cost"]
         date = request.form["date"]
+        about_info = request.form["about_info"]
         month = "-".join(date.split("-")[:2])
         user_id = current_user.id
         session = db_session.create_session()
-        info = session.query(MySpending).filter(MySpending.user_id == user_id,
-                                                MySpending.month == month,
-                                                MySpending.about == about)
-        if info.first():
-            info.update({MySpending.cost: MySpending.cost + int(cost)}, synchronize_session=False)
-        else:
-            spending = MySpending(about=about, cost=cost, month=month, user_id=user_id,
-                                  date=date)
-            session.add(spending)
+        spending = MySpending(about=about, cost=cost, month=month, user_id=user_id,
+                              date=date, info=about_info)
+        session.add(spending)
         session.commit()
-        return "complete"
+    return "complete"
 
 
-db_session.global_init("db/blogs.db")
-app.run('localhost', 8080, debug=True)
+@app.route('/remove_spending', methods=['GET', 'POST'])
+@login_required
+def remove_spending():
+    if request.method == 'POST':
+        remove_id = request.form["id"].split("_")[0]
+        session = db_session.create_session()
+        remove = session.query(MySpending).filter_by(id=remove_id).one()
+        session.delete(remove)
+        session.commit()
+    return "complete"
+
+
+db_session.global_init(db_path)
+app.run('localhost', 8080, debug=False)

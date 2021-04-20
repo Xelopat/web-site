@@ -7,42 +7,89 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, max-age=0, must-revalidate"/>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"/>
 </head>
-<body align="center">
-<input id="about" autocomplete="False" placeholder="Название траты" onclick="start(this)"><br><br>
-<input id="cost" autocomplete="False" placeholder="Сумма" onclick="start(this)"><br><br>
-<input id="append_date" type="date" name="append" autocomplete="False"><br><br>
-<button onclick="update_db()" class="position_center borders">Добавить</button>
-<br>
+<body>
+<div class="container">
+    <div style="margin-left: 20%;">
+        <div align="middle>">
+            <input id="about" placeholder="Группа траты"><br><br>
+            <input id="about_info" placeholder="Описание траты"><br><br>
+            <input id="cost" autocomplete="False" placeholder="Сумма"><br><br>
+            <input id="append_date" type="date" name="append" autocomplete="False"><br><br>
+            <button onclick="update_db()" class="position_center borders">Добавить</button>
+            <br><br>
+        </div>
+        <div>
+            Выберите месяц для анализа:<br>
+            <input type="month" name="month" oninput="get_image()" id="analise_date">
+        </div>
 
-<p>Выберите месяц для анализа:</p>
-<input type="month" name="month" oninput="get_image()" id="analise_date">
-<img id="diagram" src="">
+        <img id="diagram" src="">
+    </div>
+    <div style="margin-right: 20%;">
+        <div>
+            Выберите День для анализа:<br>
+            <input type="date" name="day" oninput="get_day_info()" id="analise_date_day">
+        </div>
+        <div id="all_spending"></div>
+    </div>
+</div>
 <script>
     document.getElementById("analise_date").valueAsDate = new Date();
+    document.getElementById("analise_date_day").valueAsDate = new Date();
     document.getElementById("append_date").valueAsDate = new Date();
 
+    async function get_day_info() {
+        var date = document.getElementById("analise_date_day").value;
+        let response = await fetch('/my_spending_day?date=' + date);
+        let body = await response.json();
+        let id = body["id"];
+        let name = body["name"];
+        let info = body["info"];
+        let cost = body["cost"];
+        document.getElementById("all_spending").innerHTML = "";
+        for (i = 0; i < name.length; ++i) {
+            let div = document.createElement("div");
+            let label = document.createElement("label");
+            let button = document.createElement("button");
+            let br = document.createElement("p");
+
+            div.appendChild(label);
+            div.appendChild(button);
+            div.appendChild(br);
+
+            label.innerHTML = name[i] + ": " + info[i] + " - " + cost[i] + " ₽";
+            button.innerHTML = "Удалить";
+            button.id = id[i] + "_remove";
+            button.onclick = function(){remove_id(this.id)}
+            button.style = "float: right;";
+            document.getElementById("all_spending").appendChild(div);
+        }
+    }
     async function get_image() {
         var date = document.getElementById("analise_date").value;
-        let response = await fetch('http://localhost:8080/my_spending?date=' + date);
+        let response = await fetch('/my_spending_month?date=' + date);
         let body = await response.json();
         let link = body["img"];
         document.getElementById("diagram").src = link + "?" + new Date().getTime();
     }
     async function update_db() {
         let about = document.getElementById("about")
+        let info = document.getElementById("about_info")
         let cost = document.getElementById("cost")
         let date = document.getElementById("append_date")
         let formData = new FormData();
         formData.append('about', about.value);
         formData.append('cost', cost.value);
+        formData.append('about_info', info.value);
         formData.append('date', date.value);
         if(about.value != ""){
             if(cost.value != ""){
-                let response = await fetch('http://localhost:8080/update_spending', {
+                let response = await fetch('/update_spending', {
                     method: 'POST',
                     body: formData
                 });
                 get_image();
+                get_day_info()
             }
             else{
                 cost.style.borderColor = 'red';
@@ -53,11 +100,20 @@
             if(cost.value == "") cost.style.borderColor = 'red';
         }
     }
-    function start(Element) {
-	    Element.style.borderColor = 'black';
+    async function remove_id(id){
+        let formData = new FormData();
+        formData.append('id', id);
+        if(confirm("Вы уверены, что хотите удалить данный элемент?")){
+            let response = await fetch('/remove_spending', {
+                method: 'POST',
+                body: formData
+            });
+            get_image();
+            get_day_info()
+        }
     }
     get_image();
-
+    get_day_info()
 </script>
 </body>
 </html>
