@@ -4,6 +4,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"/>
 </head>
 <body>
+<button onclick="window.location.href='/'">Назад</button>
 {% for category, message in get_flashed_messages(with_categories=true) %}
 <spam class="{{ category }}">{{ message }}</spam>
 {% endfor %}

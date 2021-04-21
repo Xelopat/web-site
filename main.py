@@ -1,6 +1,9 @@
 import os
+import datetime
+
 import matplotlib
 import matplotlib.pyplot as plt
+import requests
 
 from flask import Flask, render_template, request, jsonify
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
@@ -100,10 +103,10 @@ def register():
         user.set_about(form.about.data)
         user.set_email(form.email.data)
         user.set_password(form.password.data)
-
         db_sess.add(user)
         db_sess.commit()
-        return redirect('/login')
+        login_user(user, remember=True)
+        return redirect('/')
     return render_template('register.html', title='Регистрация', form=form)
 
 
@@ -123,7 +126,7 @@ def my_spending_month():
     engine = create_engine(f'sqlite:///{db_path}', echo=False)
     conn = engine.connect()
     t = select([MySpending.about, func.sum(MySpending.cost)]).where(MySpending.user_id == int(user_id),
-                                                          MySpending.month == date).group_by(MySpending.about)
+                                                                    MySpending.month == date).group_by(MySpending.about)
     res = conn.execute(t).fetchall()
     label = []
     cost = []
@@ -141,6 +144,7 @@ def my_spending_month():
     plt.close()
     plt.pie(cost, labels=label, autopct='%.0f%%')
     plt.savefig(f'static/user_diagram/{user_id}/{date}.png')
+
     link = f'static/user_diagram/{user_id}/{date}.png'
     return jsonify({"img": link})
 
@@ -195,6 +199,110 @@ def remove_spending():
         session.delete(remove)
         session.commit()
     return "complete"
+
+
+def latest():
+    app_id = '085ee583e286490db6abbdd3dfbb57a7'
+    request_url = 'https://openexchangerates.org/api/latest.json'
+    req = f"{request_url}?app_id={app_id}"
+    response = requests.get(req)
+
+    if response.status_code == 200:
+        return {
+            'USD': 1,
+            **response.json()['rates']
+        }
+    return {}
+
+
+EXCHANGES_RATES = latest()
+
+
+@app.route('/translation', methods=['GET'])
+def translation():
+    return render_template('translate.html', d=EXCHANGES_RATES)
+
+
+@app.route('/save_money', methods=['POST', 'GET'])
+def save_money():
+    if request.method == 'GET':
+        return render_template('save_money.html')
+    elif request.method == 'POST':
+        # дата начала
+        date_start = request.form['date_start'].split('-')
+        date_start = datetime.date(int(date_start[0]), int(date_start[1]), int(date_start[2]))
+        # дата окончания
+        date_finish = request.form['date_finish'].split('-')
+        date_finish = datetime.date(int(date_finish[0]), int(date_finish[1]), int(date_finish[2]))
+        # месяца между начальной датой и конечной
+        month_between = int(str(date_finish - date_start).split(',')[0].split()[0]) // 30
+        # проверка корректности введенных данных
+        if month_between < 0:
+            return render_template('answer_save_money.html', f='error time')
+        elif month_between == 0:
+            return render_template('answer_save_money.html', f='error time 1')
+        else:
+            # какой процент пользователь будет получать в месяц
+            percent_at_month = float(request.form['percent']) / 12
+            # сколько пользователь хочет получить в конце
+            c_finish = float(request.form['c_finish'])
+            # тип пополнения кошелька
+            try:
+                type_s = request.form['type_s']
+            except Exception:
+                type_s = 'Единоразовое'
+            # тип начисления процентов
+            if request.form['type_percent'] == '0':
+                # простые проценты
+                result = c_finish / month_between / (1 + (percent_at_month / 100))
+                return render_template('answer_save_money.html', f='its okay 1', result=round(result, 1))
+            else:
+                # с капитализацией
+                if type_s == '0':
+                    for i in range(month_between):
+                        c_finish = c_finish / (1 + (percent_at_month / 100))
+                    return render_template('answer_save_money.html', f='its okay 1', result=round(c_finish, 1))
+                else:
+                    summ = 0
+                    for i in range(1, month_between + 1):
+                        summ += (1 + (percent_at_month / 100)) ** i
+                    return render_template('answer_save_money.html', f='its okay 2', result=round(c_finish / summ, 1))
+
+
+@app.route('/credit', methods=['POST', 'GET'])
+def credit():
+    if request.method == 'GET':
+        return render_template('credit.html')
+    elif request.method == 'POST':
+        # дата начала
+        date_start = request.form['date_start'].split('-')
+        date_start = datetime.date(int(date_start[0]), int(date_start[1]), int(date_start[2]))
+        # дата окончания
+        date_finish = request.form['date_finish'].split('-')
+        date_finish = datetime.date(int(date_finish[0]), int(date_finish[1]), int(date_finish[2]))
+        # месяца между начальной датой и конечной
+        month_between = int(str(date_finish - date_start).split(',')[0].split()[0]) // 30
+        # проверка корректности введенных данных
+        if month_between < 0:
+            return render_template('answer_credit.html', f='error 1')
+        elif month_between == 0:
+            return render_template('answer_credit.html', f='error 2')
+        else:
+            # какой процент вы дожны отдавать в год
+            percent_at_month = float(request.form['percent']) / 12
+            # на какую сумму вы берете кредит
+            summ = float(request.form['summ'])
+            # какую сумму вы можете отдавать в месяц
+            can = float(request.form['can'])
+            # тип кредита
+            result = summ
+            for i in range(month_between):
+                summa = summ / (month_between - i) + (summ * percent_at_month / 100)
+                summ -= summ / (month_between - i)
+                result += (summ * percent_at_month)
+                if summa > can:
+                    return render_template('answer_credit.html', f='error')
+            return render_template('answer_credit.html', f='ok', res=round(result, 1))
 
 
 db_session.global_init(db_path)

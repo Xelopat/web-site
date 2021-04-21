@@ -1,0 +1,40 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Перевод из одной валюты в другую</title>
+    </head>
+    <body>
+        <form action="">
+            <p>Выберите валюту из которой нажо перевести и в которую надо перевести, введите сколько вы хотите перевести и нажмите кнопку &laquo;Перевести&raquo;</p>
+            <select id=s_v method="GET" action="/">
+                {% for v in d %}
+                <option value= "{{v}}" SELECTED>{{v}}</option>"
+                {% endfor %}
+            </select>
+            <input type="number" id=s_c>
+            <p></p>
+            <select id=f_v method="GET" action="/">
+                {% for v in d %}
+                <option value= "{{v}}" SELECTED>{{v}}</option>"
+                {% endfor %}
+            </select>
+            <input type="text" id="result">
+            <p></p>
+            <input type="button" value="Перевести" onclick="get_money()">
+        </form>
+    <script>
+        function get_money(){
+            let result = document.getElementById("result");
+            let s_c = parseFloat(document.getElementById("s_c").value);
+            let s_v = document.getElementById("s_v").value;
+            let f_v = document.getElementById("f_v").value;
+            let dict = []; // create an empty array
+            {% for k, v in d.items() %}
+                dict["{{k}}"]= {{v}};
+            {% endfor %}
+            result.value = s_c / dict[s_v] * dict[f_v];
+        }
+    </script>
+    </body>
+</html>

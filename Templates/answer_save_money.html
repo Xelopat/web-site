@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Как копить</title>
+    <body>
+     {% if f == 'error time' %}
+        <h1 align="middle" style="color: orange;"> Дата начала должна быть раньше даты окончания </h1>
+     {% elif f == 'error time 1' %}
+       <h1 align="middle" style="color: orange;"> Должен быть хотя-бы месяц от начальной до конечной даты </h1>
+     {% elif f == 'its okay 1' %}
+        <h1 align="middle" style="color: orange;">Вам нужно положить один раз: {{result}} руб.</h1>
+     {% elif f == 'its okay 2' %}
+        <h1 align="middle" style="color: orange;">Вам нужно класть каждый месяц: {{result}} руб.</h1>
+     {% endif %}
+    </body>
+</head>
+<body>
+
+</body>
+</html>

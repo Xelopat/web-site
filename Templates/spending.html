@@ -8,8 +8,9 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"/>
 </head>
 <body>
+<button onclick="window.location.href='/'">Назад</button>
 <div class="container">
-    <div style="margin-left: 20%;">
+    <div style="margin-left: 10%;" class="my_form">
         <div align="middle>">
             <input id="about" placeholder="Группа траты"><br><br>
             <input id="about_info" placeholder="Описание траты"><br><br>
@@ -22,10 +23,9 @@
             Выберите месяц для анализа:<br>
             <input type="month" name="month" oninput="get_image()" id="analise_date">
         </div>
-
-        <img id="diagram" src="">
     </div>
-    <div style="margin-right: 20%;">
+    <img id="diagram" src="">
+    <div style="margin-right: 10%;" class="my_form">
         <div>
             Выберите День для анализа:<br>
             <input type="date" name="day" oninput="get_day_info()" id="analise_date_day">
