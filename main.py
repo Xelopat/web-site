@@ -3,7 +3,6 @@ import datetime
 
 import matplotlib
 import matplotlib.pyplot as plt
-import requests
 
 from flask import Flask, render_template, request, jsonify
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
@@ -13,7 +12,8 @@ from werkzeug.utils import redirect
 from data.create_database import User, MySpending
 from forms.user import RegisterForm, LoginForm
 
-from data import db_session
+from data import db_session, translate
+
 
 db_path = "db/blogs.db"
 
@@ -204,29 +204,10 @@ def remove_spending():
     return "complete"
 
 
-# функция для получения актуального курса валют
-def latest():
-    app_id = '085ee583e286490db6abbdd3dfbb57a7'
-    request_url = 'https://openexchangerates.org/api/latest.json'
-    req = f"{request_url}?app_id={app_id}"
-    response = requests.get(req)
-
-    if response.status_code == 200:
-        return {
-            'USD': 1,
-            **response.json()['rates']
-        }
-    return {}
-
-
-# запись результата работы функции
-EXCHANGES_RATES = latest()
-
-
 # перевод из одной влюты в другую
 @app.route('/translation', methods=['GET'])
 def translation():
-    return render_template('translate.html', d=EXCHANGES_RATES)
+    return render_template('translate.html', d=translate.latest())
 
 
 # окно рассчета накоплений
