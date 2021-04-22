@@ -85,19 +85,22 @@ def logout():
     return redirect('/login')
 
 
-# registration window
+# окно регистрации
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
+        # проверка на совпадение паролей
         if form.password.data != form.password_again.data:
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="Пароли не совпадают")
         db_sess = db_session.create_session()
+        # проверка на уникальность пользователя
         if db_sess.query(User).filter(User.email == form.email.data).first():
             return render_template('register.html', title='Регистрация', form=form,
                                    message="Такой пользователь уже есть")
+        # запись пользователя в базу данных
         user = User()
         user.set_name(form.name.data)
         user.set_about(form.about.data)
@@ -201,6 +204,7 @@ def remove_spending():
     return "complete"
 
 
+# функция для получения актуального курса валют
 def latest():
     app_id = '085ee583e286490db6abbdd3dfbb57a7'
     request_url = 'https://openexchangerates.org/api/latest.json'
@@ -215,14 +219,17 @@ def latest():
     return {}
 
 
+# запись результата работы функции
 EXCHANGES_RATES = latest()
 
 
+# перевод из одной влюты в другую
 @app.route('/translation', methods=['GET'])
 def translation():
     return render_template('translate.html', d=EXCHANGES_RATES)
 
 
+# окно рассчета накоплений
 @app.route('/save_money', methods=['POST', 'GET'])
 def save_money():
     if request.method == 'GET':
@@ -238,8 +245,10 @@ def save_money():
         month_between = int(str(date_finish - date_start).split(',')[0].split()[0]) // 30
         # проверка корректности введенных данных
         if month_between < 0:
+            # оповещение об ошибке
             return render_template('answer_save_money.html', f='error time')
         elif month_between == 0:
+            # оповещение об ошибке
             return render_template('answer_save_money.html', f='error time 1')
         else:
             # какой процент пользователь будет получать в месяц
@@ -255,20 +264,24 @@ def save_money():
             if request.form['type_percent'] == '0':
                 # простые проценты
                 result = c_finish / month_between / (1 + (percent_at_month / 100))
+                # вывод результата
                 return render_template('answer_save_money.html', f='its okay 1', result=round(result, 1))
             else:
                 # с капитализацией
                 if type_s == '0':
                     for i in range(month_between):
                         c_finish = c_finish / (1 + (percent_at_month / 100))
+                    # вывод результата
                     return render_template('answer_save_money.html', f='its okay 1', result=round(c_finish, 1))
                 else:
                     summ = 0
                     for i in range(1, month_between + 1):
                         summ += (1 + (percent_at_month / 100)) ** i
+                    # вывод результата
                     return render_template('answer_save_money.html', f='its okay 2', result=round(c_finish / summ, 1))
 
 
+# окно рассчета кредита
 @app.route('/credit', methods=['POST', 'GET'])
 def credit():
     if request.method == 'GET':
@@ -284,8 +297,10 @@ def credit():
         month_between = int(str(date_finish - date_start).split(',')[0].split()[0]) // 30
         # проверка корректности введенных данных
         if month_between < 0:
+            # оповещение об ошибке
             return render_template('answer_credit.html', f='error 1')
         elif month_between == 0:
+            # оповещение об ошибке
             return render_template('answer_credit.html', f='error 2')
         else:
             # какой процент вы дожны отдавать в год
@@ -301,7 +316,9 @@ def credit():
                 summ -= summ / (month_between - i)
                 result += (summ * percent_at_month)
                 if summa > can:
+                    # оповещение об ошибке
                     return render_template('answer_credit.html', f='error')
+            # вывод результата
             return render_template('answer_credit.html', f='ok', res=round(result, 1))
 
 
