@@ -1,12 +1,13 @@
 <!DOCTYPE HTML>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
 <html>
     <head>
         <meta charset="utf-8">
         <title>Перевод из одной валюты в другую</title>
     </head>
     <body>
-        <form action="">
-            <p>Выберите валюту из которой нажо перевести и в которую надо перевести, введите сколько вы хотите перевести и нажмите кнопку &laquo;Перевести&raquo;</p>
+    <p align="middle">Выберите валюту из которой нажо перевести и в которую надо перевести, введите сколько вы хотите перевести и нажмите кнопку &laquo;Перевести&raquo;</p>
+        <form class="my_form" action="">
             <select id=s_v method="GET" action="/">
                 {% for v in d %}
                 <option value= "{{v}}" SELECTED>{{v}}</option>"
