@@ -135,7 +135,7 @@ def my_spending_month():
         cost.append(row[1])
 
     for i in range(len(cost) - 1, -1, -1):
-        if cost[i] == 0:
+        if cost[i] == 0 and len(cost) != 0:
             del cost[i]
             del label[i]
     if not cost:
