@@ -249,7 +249,7 @@ def save_money():
             # тип пополнения кошелька
             try:
                 type_s = request.form['type_s']
-            except Exception:
+            except KeyError:
                 type_s = 'Единоразовое'
             # тип начисления процентов
             if request.form['type_percent'] == '0':
