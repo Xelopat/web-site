@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Проект по Web</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+<button onclick="window.location.href=''">Назад</button>
+<div align="right" style="margin-right: 5%;">
+    <button onclick="window.location.href='register'">Регистрация</button>
+    <button onclick="window.location.href='login'">Вход</button>
+    <button onclick="window.location.href='logout'">Выход</button>
+</div>
+<div style="margin-top: 5%">
+    <div align="center" class="my_form" style="width: 200px; height: 400px">
+        <button onclick="window.location.href='view_spending'" style="margin-top: 70%;">Мои расходы</button><br><br>
+        <button onclick="window.location.href='save_money'">Копилка</button><br><br>
+        <button onclick="window.location.href='credit'">Кредит</button><br><br>
+        <button onclick="window.location.href='translation'">Перевод валют</button>
+    </div>
+</div>
+</body>
+</html>
