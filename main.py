@@ -3,7 +3,6 @@ import datetime
 
 import matplotlib
 import matplotlib.pyplot as plt
-import requests
 
 from flask import Flask, render_template, request, jsonify
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
@@ -13,7 +12,7 @@ from werkzeug.utils import redirect
 from data.create_database import User, MySpending
 from forms.user import RegisterForm, LoginForm
 
-from data import db_session
+from data import db_session, translate
 
 db_path = "db/blogs.db"
 
@@ -220,28 +219,13 @@ def remove_spending():
     return "complete"
 
 
-def latest():
-    app_id = '085ee583e286490db6abbdd3dfbb57a7'
-    request_url = 'https://openexchangerates.org/api/latest.json'
-    req = f"{request_url}?app_id={app_id}"
-    response = requests.get(req)
-
-    if response.status_code == 200:
-        return {
-            'USD': 1,
-            **response.json()['rates']
-        }
-    return {}
-
-
-EXCHANGES_RATES = latest()
-
-
+# перевод из одной валюты в другую
 @app.route('/translation', methods=['GET'])
 def translation():
-    return render_template('translate.html', d=EXCHANGES_RATES)
+    return render_template('translate.html', d=translate.latest())
 
 
+# копилка
 @app.route('/save_money', methods=['POST', 'GET'])
 def save_money():
     if request.method == 'GET':
@@ -262,9 +246,15 @@ def save_money():
             return render_template('answer_save_money.html', f='error time 1')
         else:
             # какой процент пользователь будет получать в месяц
-            percent_at_month = float(request.form['percent']) / 12
+            try:
+                percent_at_month = float(request.form['percent']) / 12
+            except Exception:
+                return render_template('answer_save_money.html', f='error value')
             # сколько пользователь хочет получить в конце
-            c_finish = float(request.form['c_finish'])
+            try:
+                c_finish = float(request.form['c_finish'])
+            except Exception:
+                return render_template('answer_save_money.html', f='error value')
             # тип пополнения кошелька
             try:
                 type_s = request.form['type_s']
@@ -288,6 +278,7 @@ def save_money():
                     return render_template('answer_save_money.html', f='its okay 2', result=round(c_finish / summ, 1))
 
 
+# кредит
 @app.route('/credit', methods=['POST', 'GET'])
 def credit():
     if request.method == 'GET':
@@ -308,11 +299,20 @@ def credit():
             return render_template('answer_credit.html', f='error 2')
         else:
             # какой процент вы дожны отдавать в год
-            percent_at_month = float(request.form['percent']) / 12
+            try:
+                percent_at_month = float(request.form['percent']) / 12
+            except Exception:
+                return render_template('answer_credit.html', f='error value')
             # на какую сумму вы берете кредит
-            summ = float(request.form['summ'])
+            try:
+                summ = float(request.form['summ'])
+            except Exception:
+                return render_template('answer_credit.html', f='error value')
             # какую сумму вы можете отдавать в месяц (максимум)
-            can = float(request.form['can'])
+            try:
+                can = float(request.form['can'])
+            except Exception:
+                return render_template('answer_credit.html', f='error value')
             # тип кредита
             result = summ
             for i in range(month_between):

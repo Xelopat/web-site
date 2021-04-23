@@ -1,18 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style_answer.css') }}" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
+    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
+    crossorigin="anonymous">
     <title>Как копить</title>
     <body>
      {% if f == 'error' %}
-        <h1 align="middle"> Не сможете </h1>
+        <div class="alert alert-danger" role="alert" align="middle">
+            Не сможете
+        </div>
      {% elif f == 'error 1' %}
-        <h1 align="middle"> Дата начала должна быть раньше даты окончания </h1>
+        <div class="alert alert-danger" role="alert" align="middle">
+            Дата начала должна быть раньше даты окончания
+        </div>
      {% elif f == 'error 2' %}
-        <h1 align="middle"> Должен быть хотя-бы месяц от начальной до конечной даты </h1>
+        <div class="alert alert-danger" role="alert" align="middle">
+            Должен быть хотя-бы месяц от начальной до конечной даты
+        </div>
      {% elif f == 'ok' %}
-       <h1 align="middle"> Сможете. Всего отдадите: {{res}} руб. </h1>
+        <div class="alert alert-success" role="alert" align="middle">
+            Сможете. Всего отдадите: {{res}} руб.
+        </div>
+     {% elif f == 'error value' %}
+        <div class="alert alert-danger" role="alert" align="middle">
+            Отдаваемые проценты, сумма на которую вы взяли кредит и сумма которую вы можете отдавать должны быть числами, также дробная часть от целой отделяется точкой
+        </div>
      {% endif %}
     </body>
 </head>

@@ -1,17 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
+    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
+    crossorigin="anonymous">
     <title>Как копить</title>
     <body>
      {% if f == 'error time' %}
-        <h1 align="middle" style="color: orange;"> Дата начала должна быть раньше даты окончания </h1>
+        <div class="alert alert-danger" role="alert" align="middle">
+            Дата начала должна быть раньше даты окончания
+        </div>
      {% elif f == 'error time 1' %}
-       <h1 align="middle" style="color: orange;"> Должен быть хотя-бы месяц от начальной до конечной даты </h1>
+        <div class="alert alert-danger" role="alert" align="middle">
+            Должен быть хотя-бы месяц от начальной до конечной даты
+        </div>
      {% elif f == 'its okay 1' %}
-        <h1 align="middle" style="color: orange;">Вам нужно положить один раз: {{result}} руб.</h1>
+        <div class="alert alert-success" role="alert" align="middle">
+            Вам нужно положить один раз: {{result}} руб.
+        </div>
      {% elif f == 'its okay 2' %}
-        <h1 align="middle" style="color: orange;">Вам нужно класть каждый месяц: {{result}} руб.</h1>
+        <div class="alert alert-success" role="alert" align="middle">
+            Вам нужно класть каждый месяц: {{result}} руб.
+        </div>
+     {% elif f == 'error value' %}
+        <div class="alert alert-danger" role="alert" align="middle">
+            Начисляемые проценты и ваша конечная денежная цель должны быть числами, также дробная часть от целой отделяется точкой
+        </div>
      {% endif %}
     </body>
 </head>
