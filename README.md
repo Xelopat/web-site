@@ -1,2 +1,2 @@
 # web-site
-https://dashboard.heroku.com/apps/financial-analysis-lesha-nik/
+http://financial-analysis-lesha-nik.herokuapp.com/
