@@ -16,7 +16,7 @@ from data import db_session, translate
 
 db_path = "db/blogs.db"
 
-app = Flask(__name__, template_folder='Template')
+app = Flask(__name__, template_folder='Templates')
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 login_manager = LoginManager(app)
