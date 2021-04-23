@@ -311,7 +311,7 @@ def credit():
             percent_at_month = float(request.form['percent']) / 12
             # на какую сумму вы берете кредит
             summ = float(request.form['summ'])
-            # какую сумму вы можете отдавать в месяц
+            # какую сумму вы можете отдавать в месяц (максимум)
             can = float(request.form['can'])
             # тип кредита
             result = summ
