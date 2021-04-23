@@ -3,6 +3,7 @@ import datetime
 
 import matplotlib
 import matplotlib.pyplot as plt
+import requests
 
 from flask import Flask, render_template, request, jsonify
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
@@ -12,8 +13,7 @@ from werkzeug.utils import redirect
 from data.create_database import User, MySpending
 from forms.user import RegisterForm, LoginForm
 
-from data import db_session, translate
-
+from data import db_session
 
 db_path = "db/blogs.db"
 
@@ -220,13 +220,28 @@ def remove_spending():
     return "complete"
 
 
-# перевод из одной влюты в другую
+def latest():
+    app_id = '085ee583e286490db6abbdd3dfbb57a7'
+    request_url = 'https://openexchangerates.org/api/latest.json'
+    req = f"{request_url}?app_id={app_id}"
+    response = requests.get(req)
+
+    if response.status_code == 200:
+        return {
+            'USD': 1,
+            **response.json()['rates']
+        }
+    return {}
+
+
+EXCHANGES_RATES = latest()
+
+
 @app.route('/translation', methods=['GET'])
 def translation():
-    return render_template('translate.html', d=translate.latest())
+    return render_template('translate.html', d=EXCHANGES_RATES)
 
 
-# окно рассчета накоплений
 @app.route('/save_money', methods=['POST', 'GET'])
 def save_money():
     if request.method == 'GET':
@@ -242,10 +257,8 @@ def save_money():
         month_between = int(str(date_finish - date_start).split(',')[0].split()[0]) // 30
         # проверка корректности введенных данных
         if month_between < 0:
-            # оповещение об ошибке
             return render_template('answer_save_money.html', f='error time')
         elif month_between == 0:
-            # оповещение об ошибке
             return render_template('answer_save_money.html', f='error time 1')
         else:
             # какой процент пользователь будет получать в месяц
@@ -261,24 +274,20 @@ def save_money():
             if request.form['type_percent'] == '0':
                 # простые проценты
                 result = c_finish / month_between / (1 + (percent_at_month / 100))
-                # вывод результата
                 return render_template('answer_save_money.html', f='its okay 1', result=round(result, 1))
             else:
                 # с капитализацией
                 if type_s == '0':
                     for i in range(month_between):
                         c_finish = c_finish / (1 + (percent_at_month / 100))
-                    # вывод результата
                     return render_template('answer_save_money.html', f='its okay 1', result=round(c_finish, 1))
                 else:
                     summ = 0
                     for i in range(1, month_between + 1):
                         summ += (1 + (percent_at_month / 100)) ** i
-                    # вывод результата
                     return render_template('answer_save_money.html', f='its okay 2', result=round(c_finish / summ, 1))
 
 
-# окно рассчета кредита
 @app.route('/credit', methods=['POST', 'GET'])
 def credit():
     if request.method == 'GET':
@@ -294,10 +303,8 @@ def credit():
         month_between = int(str(date_finish - date_start).split(',')[0].split()[0]) // 30
         # проверка корректности введенных данных
         if month_between < 0:
-            # оповещение об ошибке
             return render_template('answer_credit.html', f='error 1')
         elif month_between == 0:
-            # оповещение об ошибке
             return render_template('answer_credit.html', f='error 2')
         else:
             # какой процент вы дожны отдавать в год
@@ -313,9 +320,7 @@ def credit():
                 summ -= summ / (month_between - i)
                 result += (summ * percent_at_month)
                 if summa > can:
-                    # оповещение об ошибке
                     return render_template('answer_credit.html', f='error')
-            # вывод результата
             return render_template('answer_credit.html', f='ok', res=round(result, 1))
 
 
