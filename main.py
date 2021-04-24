@@ -42,8 +42,10 @@ def get_id(user_id):
 # main window
 @app.route('/')
 def index():
-    return render_template('index.html')
-
+    if current_user.is_authenticated:
+        return render_template('index.html', name=current_user.name)
+    else:
+        return render_template('index.html', name="")
 
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
