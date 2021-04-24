@@ -47,6 +47,7 @@ def index():
     else:
         return render_template('index.html', name="")
 
+
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -100,7 +101,8 @@ def register():
                                    message="Пароли не совпадают")
         db_sess = db_session.create_session()
         # user already exist
-        if db_sess.query(User).filter(User.email == form.email.data).first():
+        if db_sess.query(User).filter(User.email == form.email.data).first() or db_sess.query(User).filter(
+                User.name == form.name.data).first():
             return render_template('register.html', title='Регистрация', form=form,
                                    message="Такой пользователь уже есть")
         user = User()
